@@ -1,4 +1,3 @@
-
 use clap::Parser;
 use rcli::{process_csv, Opts, SubCommand};
 
