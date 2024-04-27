@@ -1,4 +1,4 @@
-use crate::opts::OutputFormat;
+use crate::cli::OutputFormat;
 use anyhow::Ok;
 use csv::Reader;
 

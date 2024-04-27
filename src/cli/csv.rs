@@ -1,39 +1,5 @@
 use clap::Parser;
-use core::fmt;
-use std::{path::Path, str::FromStr};
-
-#[derive(Debug, Parser)]
-#[command(name = "cli", version, about, author, long_about = None)]
-pub struct Opts {
-    #[command(subcommand)]
-    pub cmd: SubCommand,
-}
-
-#[derive(Debug, Parser)]
-pub enum SubCommand {
-    #[command(name = "csv", about = "Convert CSV to JSON")]
-    Csv(CsvOpts),
-    #[command(name = "genpass")]
-    GenPass(GenPassOpts),
-}
-
-#[derive(Debug, Parser)]
-pub struct GenPassOpts {
-    #[arg(short, long, default_value_t = 16)]
-    pub length: u8,
-
-    #[arg(long, default_value_t = true)]
-    pub uppercase: bool,
-
-    #[arg(long, default_value_t = true)]
-    pub lowercase: bool,
-
-    #[arg(long, default_value_t = true)]
-    pub number: bool,
-
-    #[arg(long, default_value_t = true)]
-    pub symbols: bool,
-}
+use std::{fmt, path::Path, str::FromStr};
 
 #[derive(Debug, Clone, Copy)]
 pub enum OutputFormat {
