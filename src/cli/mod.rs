@@ -1,8 +1,10 @@
 mod base64;
 mod csv;
 mod genpass;
+mod text;
 pub use self::base64::{Base64Format, Base64SubCommand};
 pub use self::csv::OutputFormat;
+pub use self::text::{TextSignFormat, TextSubCommand};
 use self::{csv::CsvOpts, genpass::GenPassOpts};
 use clap::Parser;
 
@@ -22,4 +24,6 @@ pub enum SubCommand {
 
     #[command(subcommand, about = "Encode/Decode Base64")]
     Base64(Base64SubCommand),
+    #[command(subcommand, about = "Sign/Verify text")]
+    Text(TextSubCommand),
 }

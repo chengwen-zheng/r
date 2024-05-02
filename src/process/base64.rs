@@ -28,15 +28,10 @@ pub fn process_decode(reader: &mut dyn Read, format: Base64Format) -> anyhow::Re
     Ok(String::from_utf8(decoded)?)
 }
 
-pub fn get_reader(input: &str) -> anyhow::Result<Box<dyn Read>> {
-    if input == "-" {
-        Ok(Box::new(std::io::stdin()))
-    } else {
-        Ok(Box::new(std::fs::File::open(input)?))
-    }
-}
-
 mod tests {
+    #[allow(unused_imports)] // for cargo test to pass]
+    use crate::get_reader;
+
     #[allow(unused_imports)] // for cargo test to pass]
     use super::*;
     #[allow(unused_imports)] // for cargo test to pass]

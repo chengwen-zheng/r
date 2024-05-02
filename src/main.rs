@@ -1,7 +1,7 @@
 use clap::Parser;
 use rcli::{
-    process_csv, process_decode, process_encode, process_genpass, Base64SubCommand, Opts,
-    SubCommand,
+    get_reader, process_csv, process_decode, process_encode, process_genpass, process_text_sign,
+    process_text_verify, Base64SubCommand, Opts, SubCommand, TextSubCommand,
 };
 use zxcvbn::zxcvbn;
 fn main() -> anyhow::Result<()> {
@@ -36,15 +36,36 @@ fn main() -> anyhow::Result<()> {
 
             match subcmd {
                 Base64SubCommand::Encode(encode_opts) => {
-                    let mut reader = rcli::get_reader(&encode_opts.input)?;
+                    let mut reader = get_reader(&encode_opts.input)?;
                     let encode = process_encode(&mut reader, encode_opts.format);
                     println!("{:?}", encode);
                 }
                 Base64SubCommand::Decode(decode_opts) => {
                     println!("{:?}", decode_opts);
-                    let mut reader = rcli::get_reader(&decode_opts.input)?;
+                    let mut reader = get_reader(&decode_opts.input)?;
                     let decode = process_decode(&mut reader, decode_opts.format);
                     println!("{:?}", decode);
+                }
+            }
+        }
+        SubCommand::Text(text_subcmd) => {
+            println!("{:?}", text_subcmd);
+            match text_subcmd {
+                TextSubCommand::Sign(sign_opts) => {
+                    println!("{:?}", sign_opts);
+                    let mut reader = get_reader(&sign_opts.input)?;
+                    process_text_sign(&mut reader, &sign_opts.key, sign_opts.format)?;
+                }
+                TextSubCommand::Verify(verify_opts) => {
+                    println!("{:?}", verify_opts);
+                    let mut reader = get_reader(&verify_opts.input)?;
+                    let verified = process_text_verify(
+                        &mut reader,
+                        &verify_opts.key,
+                        verify_opts.format,
+                        &verify_opts.sign,
+                    )?;
+                    println!("Verified: {}", verified);
                 }
             }
         }
