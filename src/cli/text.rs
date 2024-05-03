@@ -1,5 +1,11 @@
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use clap::{arg, command, Parser};
 use std::{path::PathBuf, str::FromStr};
+use tokio::fs;
+
+use crate::{
+    get_reader, process_text_key_generate, process_text_sign, process_text_verify, CmdExector,
+};
 
 use super::{verify_file, verify_path};
 
@@ -12,6 +18,49 @@ pub enum TextSubCommand {
     #[command(about = "Generate a new key pair for signing text messages")]
     Generate(TextKeyGenerateOpts),
 }
+
+impl CmdExector for TextSubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            TextSubCommand::Sign(opts) => opts.execute().await,
+            TextSubCommand::Verify(opts) => opts.execute().await,
+            TextSubCommand::Generate(opts) => opts.execute().await,
+        }
+    }
+}
+
+impl CmdExector for TextSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let mut reader = get_reader(&self.input)?;
+        let sign = process_text_sign(&mut reader, &self.key, self.format)?;
+        // base64 encode the signature
+        let encoded = URL_SAFE_NO_PAD.encode(sign);
+        println!("{}", encoded);
+        Ok(())
+    }
+}
+impl CmdExector for TextVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let mut reader = get_reader(&self.input)?;
+        let verified = process_text_verify(&mut reader, &self.key, self.format, &self.sign)?;
+        if verified {
+            println!("✓ Signature verified");
+        } else {
+            println!("⚠ Signature not verified");
+        }
+        Ok(())
+    }
+}
+impl CmdExector for TextKeyGenerateOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let key = process_text_key_generate(self.format)?;
+        for (k, v) in key {
+            fs::write(self.output_path.join(k), v).await?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Parser)]
 pub struct TextKeyGenerateOpts {
     #[arg(long, default_value = "blake3", value_parser = parse_text_sign_format)]

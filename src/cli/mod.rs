@@ -5,6 +5,8 @@ mod http;
 mod text;
 use std::path::{Path, PathBuf};
 
+use crate::CmdExector;
+
 pub use self::base64::{Base64Format, Base64SubCommand};
 pub use self::csv::OutputFormat;
 pub use self::http::HttpSubCommand;
@@ -32,6 +34,18 @@ pub enum SubCommand {
     Text(TextSubCommand),
     #[command(subcommand, about = "Serve HTTP")]
     Http(HttpSubCommand),
+}
+
+impl CmdExector for SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            SubCommand::Csv(opts) => opts.execute().await,
+            SubCommand::GenPass(opts) => opts.execute().await,
+            SubCommand::Base64(opts) => opts.execute().await,
+            SubCommand::Text(opts) => opts.execute().await,
+            SubCommand::Http(opts) => opts.execute().await,
+        }
+    }
 }
 
 fn verify_path(path: &str) -> Result<PathBuf, &'static str> {

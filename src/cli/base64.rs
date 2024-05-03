@@ -1,12 +1,22 @@
 use clap::{arg, command, Parser};
 use std::str::FromStr;
 
+use crate::CmdExector;
+
 #[derive(Debug, Parser)]
 pub enum Base64SubCommand {
     #[command(name = "encode", about = "Encode Base64")]
     Encode(Base64EncodeOpts),
     #[command(name = "decode", about = "Decode Base64")]
     Decode(Base64DecodeOpts),
+}
+impl CmdExector for Base64SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            Base64SubCommand::Encode(opts) => opts.execute().await,
+            Base64SubCommand::Decode(opts) => opts.execute().await,
+        }
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -15,6 +25,24 @@ pub struct Base64EncodeOpts {
     pub input: String,
     #[arg(long, value_parser = parse_base64_format, default_value = "standard")]
     pub format: Base64Format,
+}
+
+impl CmdExector for Base64EncodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let mut reader = crate::get_reader(&self.input)?;
+        let encode = crate::process_encode(&mut reader, self.format);
+        println!("{:?}", encode);
+        Ok(())
+    }
+}
+
+impl CmdExector for Base64DecodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let mut reader = crate::get_reader(&self.input)?;
+        let decode = crate::process_decode(&mut reader, self.format);
+        println!("{:?}", decode);
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]

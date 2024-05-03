@@ -1,3 +1,4 @@
+use crate::{process_csv, CmdExector};
 use clap::Parser;
 use std::{fmt, path::Path, str::FromStr};
 
@@ -23,6 +24,17 @@ pub struct CsvOpts {
 
     #[arg(short, long, default_value_t = ',')]
     pub delimiter: char,
+}
+
+impl CmdExector for CsvOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let output = if let Some(output) = self.output {
+            output
+        } else {
+            format!("output.{}", self.format)
+        };
+        process_csv(&self.input, output, self.format)
+    }
 }
 
 fn verify_input_file(file: &str) -> Result<String, &'static str> {
