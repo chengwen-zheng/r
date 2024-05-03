@@ -23,7 +23,7 @@ pub struct Opts {
 pub enum SubCommand {
     #[command(name = "csv", about = "Convert CSV to JSON")]
     Csv(CsvOpts),
-    #[command(name = "genpass")]
+    #[command(name = "genpass", about = "Generate password")]
     GenPass(GenPassOpts),
 
     #[command(subcommand, about = "Encode/Decode Base64")]
