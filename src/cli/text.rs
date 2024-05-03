@@ -1,5 +1,7 @@
 use clap::{arg, command, Parser};
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
+
+use super::{verify_file, verify_path};
 
 #[derive(Debug, Parser)]
 pub enum TextSubCommand {
@@ -7,6 +9,23 @@ pub enum TextSubCommand {
     Sign(TextSignOpts),
     #[command(about = "Verify a signature with a public key")]
     Verify(TextVerifyOpts),
+    #[command(about = "Generate a new key pair for signing text messages")]
+    Generate(TextKeyGenerateOpts),
+}
+#[derive(Debug, Parser)]
+pub struct TextKeyGenerateOpts {
+    #[arg(long, default_value = "blake3", value_parser = parse_text_sign_format)]
+    pub format: TextSignFormat,
+    #[arg(short, long, value_parser = verify_path)]
+    pub output_path: PathBuf,
+}
+
+fn parse_text_sign_format(format: &str) -> Result<TextSignFormat, &'static str> {
+    match format {
+        "blake3" => Ok(TextSignFormat::Blake3),
+        "ed25519" => Ok(TextSignFormat::Ed25519),
+        _ => Err("Invalid format"),
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -30,14 +49,6 @@ pub struct TextVerifyOpts {
 
     #[arg(long)]
     pub sign: String,
-}
-
-fn verify_file(file: &str) -> Result<String, &'static str> {
-    if file == "-" || std::path::Path::new(file).exists() {
-        Ok(file.into())
-    } else {
-        Err("File does not exist")
-    }
 }
 
 #[derive(Debug, Clone, Copy)]

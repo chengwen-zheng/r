@@ -1,7 +1,11 @@
+use std::fs;
+
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use clap::Parser;
 use rcli::{
-    get_reader, process_csv, process_decode, process_encode, process_genpass, process_text_sign,
-    process_text_verify, Base64SubCommand, Opts, SubCommand, TextSubCommand,
+    get_reader, process_csv, process_decode, process_encode, process_genpass,
+    process_text_key_generate, process_text_sign, process_text_verify, Base64SubCommand, Opts,
+    SubCommand, TextSubCommand,
 };
 use zxcvbn::zxcvbn;
 fn main() -> anyhow::Result<()> {
@@ -54,8 +58,12 @@ fn main() -> anyhow::Result<()> {
                 TextSubCommand::Sign(sign_opts) => {
                     println!("{:?}", sign_opts);
                     let mut reader = get_reader(&sign_opts.input)?;
-                    process_text_sign(&mut reader, &sign_opts.key, sign_opts.format)?;
+                    let sign = process_text_sign(&mut reader, &sign_opts.key, sign_opts.format)?;
+                    // base64 encode the signature
+                    let encoded = URL_SAFE_NO_PAD.encode(sign);
+                    println!("{}", encoded);
                 }
+
                 TextSubCommand::Verify(verify_opts) => {
                     println!("{:?}", verify_opts);
                     let mut reader = get_reader(&verify_opts.input)?;
@@ -65,7 +73,17 @@ fn main() -> anyhow::Result<()> {
                         verify_opts.format,
                         &verify_opts.sign,
                     )?;
-                    println!("Verified: {}", verified);
+                    if verified {
+                        println!("✓ Signature verified");
+                    } else {
+                        println!("⚠ Signature not verified");
+                    }
+                }
+                TextSubCommand::Generate(generate_opts) => {
+                    let key = process_text_key_generate(generate_opts.format)?;
+                    for (k, v) in key {
+                        fs::write(generate_opts.output_path.join(k), v)?;
+                    }
                 }
             }
         }
