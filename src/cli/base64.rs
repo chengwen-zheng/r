@@ -1,23 +1,25 @@
 use clap::{arg, command, Parser};
+use enum_dispatch::enum_dispatch;
 use std::str::FromStr;
 
 use crate::CmdExector;
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExector)]
 pub enum Base64SubCommand {
     #[command(name = "encode", about = "Encode Base64")]
     Encode(Base64EncodeOpts),
     #[command(name = "decode", about = "Decode Base64")]
     Decode(Base64DecodeOpts),
 }
-impl CmdExector for Base64SubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            Base64SubCommand::Encode(opts) => opts.execute().await,
-            Base64SubCommand::Decode(opts) => opts.execute().await,
-        }
-    }
-}
+// impl CmdExector for Base64SubCommand {
+//     async fn execute(self) -> anyhow::Result<()> {
+//         match self {
+//             Base64SubCommand::Encode(opts) => opts.execute().await,
+//             Base64SubCommand::Decode(opts) => opts.execute().await,
+//         }
+//     }
+// }
 
 #[derive(Debug, Parser)]
 pub struct Base64EncodeOpts {
