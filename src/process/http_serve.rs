@@ -13,6 +13,7 @@ use tracing::{info, warn};
 struct HttpServeState {
     path: PathBuf,
 }
+
 pub async fn process_http_server(path: PathBuf, port: u16) -> Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     info!("Serving {:?} on {}", path, addr);
@@ -78,5 +79,33 @@ async fn file_handler(
                 ))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use axum::{body::to_bytes, response::IntoResponse};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_file_handler() {
+        let state = HttpServeState {
+            path: PathBuf::from("."),
+        };
+        let state = Arc::new(state);
+        let state = State(state);
+        let res = file_handler(state, Path("Cargo.toml".to_string()))
+            .await
+            .unwrap();
+        // Assert that the response is successful (200 OK)
+        assert_eq!(res.to_owned().into_response().status(), StatusCode::OK);
+        // Read the response body into a String
+        let body = res.into_response().into_body();
+        let bytes = to_bytes(body, usize::MAX).await.unwrap();
+        let body_str = String::from_utf8(bytes.to_vec()).unwrap();
+
+        // Assert that the response body contains the expected content
+        assert!(body_str.contains("[package]"));
     }
 }
