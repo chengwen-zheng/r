@@ -3,13 +3,15 @@ use std::fs;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use clap::Parser;
 use rcli::{
-    get_reader, process_csv, process_decode, process_encode, process_genpass,
-    process_text_key_generate, process_text_sign, process_text_verify, Base64SubCommand, Opts,
-    SubCommand, TextSubCommand,
+    get_reader, process_csv, process_decode, process_encode, process_genpass, process_http_server,
+    process_text_key_generate, process_text_sign, process_text_verify, Base64SubCommand,
+    HttpSubCommand, Opts, SubCommand, TextSubCommand,
 };
 use zxcvbn::zxcvbn;
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let opts = Opts::parse();
+    tracing_subscriber::fmt::init();
     println!("{:?}", opts);
     match opts.cmd {
         SubCommand::Csv(csv_opts) => {
@@ -84,6 +86,14 @@ fn main() -> anyhow::Result<()> {
                     for (k, v) in key {
                         fs::write(generate_opts.output_path.join(k), v)?;
                     }
+                }
+            }
+        }
+        SubCommand::Http(http_subcmd) => {
+            println!("{:?}", http_subcmd);
+            match http_subcmd {
+                HttpSubCommand::Serve(serve_opts) => {
+                    process_http_server(serve_opts.dir, serve_opts.port).await?;
                 }
             }
         }

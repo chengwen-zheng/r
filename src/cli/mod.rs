@@ -1,11 +1,13 @@
 mod base64;
 mod csv;
 mod genpass;
+mod http;
 mod text;
 use std::path::{Path, PathBuf};
 
 pub use self::base64::{Base64Format, Base64SubCommand};
 pub use self::csv::OutputFormat;
+pub use self::http::HttpSubCommand;
 pub use self::text::{TextSignFormat, TextSubCommand};
 use self::{csv::CsvOpts, genpass::GenPassOpts};
 use clap::Parser;
@@ -28,6 +30,8 @@ pub enum SubCommand {
     Base64(Base64SubCommand),
     #[command(subcommand, about = "Sign/Verify text")]
     Text(TextSubCommand),
+    #[command(subcommand, about = "Serve HTTP")]
+    Http(HttpSubCommand),
 }
 
 fn verify_path(path: &str) -> Result<PathBuf, &'static str> {
